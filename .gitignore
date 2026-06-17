@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma
+
+.vercel
+
+# database / session files
+auth
+auth-wal
+auth-shm
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# log files
+lint-output.txt
+lint.txt

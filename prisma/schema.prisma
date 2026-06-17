@@ -1,0 +1,29 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model BenchmarkResult {
+  id            String   @id @default(cuid())
+  deviceName    String
+  os            String
+  browser       String
+  cpuCores      Int
+  ramGB         Float
+  gpuRenderer   String
+  avgFPS        Float
+  minFPS        Float
+  onePercentLow Float
+  cpuScore      Float?
+  gpuScore      Float?
+  score         Float
+  tier          String
+  batteryDrain  Float
+  fpsTimeline   String
+  createdAt     DateTime @default(now())
+}
