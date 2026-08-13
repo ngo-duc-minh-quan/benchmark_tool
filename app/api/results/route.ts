@@ -79,28 +79,46 @@ export async function POST(req: NextRequest) {
     }
 
     const {
-      deviceName, os, browser, cpuCores, ramGB, gpuRenderer,
+      clientResultId, deviceName, os, browser, cpuCores, ramGB, gpuRenderer,
       avgFPS, minFPS, onePercentLow, cpuScore, gpuScore,
+      singleCoreWorkUnitsPerSec, multiCoreWorkUnitsPerSec,
       score, tier, batteryDrain, fpsTimeline,
     } = body;
 
+    // Idempotency check: Return existing record if clientResultId already submitted
+    if (clientResultId && typeof clientResultId === "string" && clientResultId.trim().length > 0) {
+      const existing = await prisma.benchmarkResult.findUnique({
+        where: { clientResultId: clientResultId.trim() },
+      });
+      if (existing) {
+        return NextResponse.json(
+          { success: true, id: existing.id, idempotent: true },
+          { status: 200 }
+        );
+      }
+    }
+
     const result = await prisma.benchmarkResult.create({
       data: {
-        deviceName:    String(deviceName).trim().slice(0, 120),
-        os:            String(os).trim().slice(0, 60),
-        browser:       String(browser).trim().slice(0, 60),
-        cpuCores:      Number(cpuCores),
-        ramGB:         Number(ramGB),
-        gpuRenderer:   String(gpuRenderer).trim().slice(0, 200),
-        avgFPS:        Number(avgFPS),
-        minFPS:        Number(minFPS),
-        onePercentLow: Number(onePercentLow),
-        cpuScore:      cpuScore != null ? Number(cpuScore) : null,
-        gpuScore:      gpuScore != null ? Number(gpuScore) : null,
-        score:         Math.min(100, Number(score)), // hard clamp
-        tier:          String(tier),
-        batteryDrain:  Number(batteryDrain),
-        fpsTimeline:   JSON.stringify(fpsTimeline),
+        clientResultId:            clientResultId ? String(clientResultId).trim() : null,
+        deviceName:                String(deviceName).trim().slice(0, 120),
+        os:                        String(os).trim().slice(0, 60),
+        browser:                   String(browser).trim().slice(0, 60),
+        cpuCores:                  Number(cpuCores),
+        ramGB:                     Number(ramGB),
+        gpuRenderer:               String(gpuRenderer).trim().slice(0, 200),
+        avgFPS:                    Number(avgFPS),
+        minFPS:                    Number(minFPS),
+        onePercentLow:             Number(onePercentLow),
+        cpuScore:                  cpuScore != null ? Number(cpuScore) : null,
+        gpuScore:                  gpuScore != null ? Number(gpuScore) : null,
+        singleCoreWorkUnitsPerSec: singleCoreWorkUnitsPerSec != null ? Number(singleCoreWorkUnitsPerSec) : null,
+        multiCoreWorkUnitsPerSec:  multiCoreWorkUnitsPerSec != null ? Number(multiCoreWorkUnitsPerSec) : null,
+        cpuCoresUsed:              Number(cpuCores),
+        score:                     Math.min(100, Number(score)), // hard clamp
+        tier:                      String(tier),
+        batteryDrain:              Number(batteryDrain),
+        fpsTimeline:               JSON.stringify(fpsTimeline),
       },
     });
 
